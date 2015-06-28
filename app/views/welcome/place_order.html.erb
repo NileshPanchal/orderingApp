@@ -1,0 +1,128 @@
+<!-- my form starts -->
+<div class="row">
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+    <%= nested_form_for @customer, as: :customer, url: submit_order_path, html: { id: "example-advanced-form" } do |f| %>
+
+        <h3>Fill Your Details</h3>
+        <fieldset>
+          <legend>Customer Details</legend>
+
+          <div class="field">
+              <%= f.label :name %> *
+              <%= f.text_field :name, :required => true %>
+          </div>
+
+          <div class="field">
+              <%= f.label :phone_number %> *
+              <%= f.text_field :phone_number, :required => true %>
+          </div>
+
+          <div class="field">
+              <%= f.label :email %> *
+              <%= f.text_field :email, :required => true %>
+          </div>
+
+          <div class="field">
+              <%= f.label :location %> *
+              <%= f.text_field :location, :required => true %>
+          </div>
+
+          <p>(*) Mandatory</p>
+        </fieldset>
+
+        <h3>Place Your Order</h3>
+        <fieldset>
+          <legend>Select Products</legend>
+          <%= f.fields_for :products do |product_form| %>
+              <div class="field">
+                <%= product_form.collection_select(:id, Product.all, :id, :name, {multiple: true}) %>
+                <%= product_form.link_to_remove "x" %>
+              </div>
+          <% end %>
+          <p><%= f.link_to_add "Add a product", :products %></p>
+        </fieldset>
+
+        <h3>Finish</h3>
+        <fieldset>
+          <legend>Submit An Order</legend>
+          <%= f.submit :class=>"btn btn-primary" %>
+        </fieldset>
+
+    <% end %>
+  </div>
+</div>
+<!-- my form ends -->
+
+<div class="row">
+  <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
+    <%= link_to "Home", "/" %>
+  </div>
+</div>
+
+<br/>
+<hr/>
+
+
+<script>
+    $(function() {
+
+        var form = $("#example-advanced-form").show();
+
+        form.steps({
+            headerTag: "h3",
+            bodyTag: "fieldset",
+            transitionEffect: "slideLeft",
+            onStepChanging: function (event, currentIndex, newIndex)
+            {
+                // Allways allow previous action even if the current form is not valid!
+                if (currentIndex > newIndex)
+                {
+                    return true;
+                }
+                // Forbid next action on "Warning" step if the user is to young
+                if (newIndex === 3 && Number($("#age-2").val()) < 18)
+                {
+                    return false;
+                }
+                // Needed in some cases if the user went back (clean up)
+                if (currentIndex < newIndex)
+                {
+                    // To remove error styles
+                    form.find(".body:eq(" + newIndex + ") label.error").remove();
+                    form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+                }
+                form.validate().settings.ignore = ":disabled,:hidden";
+                return form.valid();
+            },
+            onStepChanged: function (event, currentIndex, priorIndex)
+            {
+                // Used to skip the "Warning" step if the user is old enough.
+                if (currentIndex === 2 && Number($("#age-2").val()) >= 18)
+                {
+                    form.steps("next");
+                }
+                // Used to skip the "Warning" step if the user is old enough and wants to the previous step.
+                if (currentIndex === 2 && priorIndex === 3)
+                {
+                    form.steps("previous");
+                }
+            },
+            onFinishing: function (event, currentIndex)
+            {
+                form.validate().settings.ignore = ":disabled";
+                return form.valid();
+            },
+            onFinished: function (event, currentIndex)
+            {
+                console.log("Submitted!");
+            }
+        }).validate({
+            errorPlacement: function errorPlacement(error, element) { element.before(error); },
+            rules: {
+                confirm: {
+                    equalTo: "#password-2"
+                }
+            }
+        });
+    });
+</script>
